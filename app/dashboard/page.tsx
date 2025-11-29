@@ -1,0 +1,65 @@
+"use client"
+
+import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
+import { LogOut, Settings, Bell, User } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import DashboardContent from "@/components/dashboard/dashboard-content"
+
+export default function DashboardPage() {
+  const router = useRouter()
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [userEmail, setUserEmail] = useState("")
+  const [catName, setCatName] = useState("")
+
+  useEffect(() => {
+    const auth = localStorage.getItem("isAuthenticated")
+    if (!auth) {
+      router.push("/login")
+    } else {
+      setIsAuthenticated(true)
+      setUserEmail(localStorage.getItem("userEmail") || "")
+      setCatName(localStorage.getItem("catName") || "Gato")
+    }
+  }, [router])
+
+  const handleLogout = () => {
+    localStorage.clear()
+    router.push("/")
+  }
+
+  if (!isAuthenticated) return null
+
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="border-b border-border bg-card sticky top-0 z-40">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+          <h1 className="text-xl font-bold text-foreground">LitterFlow</h1>
+
+          <div className="flex items-center gap-4">
+            <button className="p-2 rounded-lg hover:bg-muted transition">
+              <Bell className="w-5 h-5 text-foreground" />
+            </button>
+            <button className="p-2 rounded-lg hover:bg-muted transition">
+              <Settings className="w-5 h-5 text-foreground" />
+            </button>
+            <button className="p-2 rounded-lg hover:bg-muted transition flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
+                <User className="w-4 h-4 text-primary" />
+              </div>
+            </button>
+            <Button variant="ghost" size="sm" onClick={handleLogout} className="flex items-center gap-2">
+              <LogOut className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <DashboardContent catName={catName} userEmail={userEmail} />
+      </div>
+    </div>
+  )
+}
