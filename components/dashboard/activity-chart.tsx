@@ -2,17 +2,26 @@
 
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
 
-const data = [
-  { day: "Lun", visits: 8 },
-  { day: "Mar", visits: 12 },
-  { day: "Mié", visits: 9 },
-  { day: "Jue", visits: 15 },
-  { day: "Vie", visits: 11 },
-  { day: "Sáb", visits: 13 },
-  { day: "Dom", visits: 12 },
+type ActivityPoint = {
+  day: string
+  visits: number
+}
+
+const defaultData: ActivityPoint[] = [
+  { day: "Lun", visits: 0 },
+  { day: "Mar", visits: 0 },
+  { day: "Mié", visits: 0 },
+  { day: "Jue", visits: 0 },
+  { day: "Vie", visits: 0 },
+  { day: "Sáb", visits: 0 },
+  { day: "Dom", visits: 0 },
 ]
 
-export default function ActivityChart() {
+interface ActivityChartProps {
+  readonly data?: ActivityPoint[]
+}
+
+export default function ActivityChart({ data = defaultData }: ActivityChartProps) {
   return (
     <ResponsiveContainer width="100%" height={300}>
       <BarChart data={data}>

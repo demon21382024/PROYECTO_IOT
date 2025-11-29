@@ -4,7 +4,10 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { LogOut, Settings, Bell, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { ProfileDialog } from "@/components/dashboard/profile-dialog"
 import DashboardContent from "@/components/dashboard/dashboard-content"
+
+import { SettingsDialog } from "@/components/dashboard/settings-dialog"
 
 export default function DashboardPage() {
   const router = useRouter()
@@ -41,14 +44,18 @@ export default function DashboardPage() {
             <button className="p-2 rounded-lg hover:bg-muted transition">
               <Bell className="w-5 h-5 text-foreground" />
             </button>
-            <button className="p-2 rounded-lg hover:bg-muted transition">
-              <Settings className="w-5 h-5 text-foreground" />
-            </button>
-            <button className="p-2 rounded-lg hover:bg-muted transition flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
-                <User className="w-4 h-4 text-primary" />
-              </div>
-            </button>
+            <SettingsDialog>
+              <button className="p-2 rounded-lg hover:bg-muted transition">
+                <Settings className="w-5 h-5 text-foreground" />
+              </button>
+            </SettingsDialog>
+            <ProfileDialog userEmail={userEmail} catName={catName}>
+              <button className="p-2 rounded-lg hover:bg-muted transition flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
+                  <User className="w-4 h-4 text-primary" />
+                </div>
+              </button>
+            </ProfileDialog>
             <Button variant="ghost" size="sm" onClick={handleLogout} className="flex items-center gap-2">
               <LogOut className="w-4 h-4" />
             </Button>

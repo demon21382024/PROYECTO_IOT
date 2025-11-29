@@ -3,7 +3,8 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { Check, ArrowRight, Wifi } from "lucide-react"
+import { Check, ArrowRight } from "lucide-react"
+import { ContactSalesDialog } from "@/components/contact-sales-dialog"
 
 export default function PricingPage() {
   const plans = [
@@ -79,8 +80,8 @@ export default function PricingPage() {
       <header className="border-b border-border bg-card sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center">
-              <Wifi className="w-4 h-4 text-primary-foreground" />
+            <div className="w-10 h-10 flex items-center justify-center">
+              <img src="/logo.svg" alt="LitterFlow Logo" className="w-full h-full" />
             </div>
             <span className="font-bold text-lg text-foreground">LitterFlow</span>
           </Link>
@@ -105,11 +106,10 @@ export default function PricingPage() {
           {plans.map((plan) => (
             <Card
               key={plan.name}
-              className={`relative flex flex-col border-2 transition ${
-                plan.highlight
-                  ? "border-primary ring-2 ring-primary/20 scale-105"
-                  : "border-border hover:border-primary/50"
-              }`}
+              className={`relative flex flex-col border-2 transition ${plan.highlight
+                ? "border-primary ring-2 ring-primary/20 scale-105"
+                : "border-border hover:border-primary/50"
+                }`}
             >
               {plan.highlight && (
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2">
@@ -205,7 +205,7 @@ export default function PricingPage() {
           <p className="text-muted-foreground max-w-2xl mx-auto">
             Nuestro equipo está aquí para ayudarte. Contacta con nosotros para una recomendación personalizada.
           </p>
-          <Button size="lg">Contactar Ventas</Button>
+          <ContactSalesDialog triggerLabel="Contactar Ventas" />
         </div>
       </main>
 

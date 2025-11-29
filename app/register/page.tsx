@@ -6,7 +6,7 @@ import Link from "next/link"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { Wifi, ArrowLeft, Check } from "lucide-react"
+import { ArrowLeft, Check } from "lucide-react"
 
 export default function RegisterPage() {
   const [step, setStep] = useState(1)
@@ -62,8 +62,8 @@ export default function RegisterPage() {
         </Link>
 
         <Card className="p-8 border border-border shadow-lg">
-          <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-primary/10 mx-auto mb-6">
-            <Wifi className="w-6 h-6 text-primary" />
+          <div className="flex items-center justify-center w-16 h-16 mx-auto mb-6">
+            <img src="/logo.svg" alt="LitterFlow Logo" className="w-full h-full" />
           </div>
 
           <h1 className="text-3xl font-bold text-center text-foreground mb-2">Crear cuenta</h1>

@@ -2,17 +2,17 @@
 
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts"
 
-const data = [
-  { time: "08:00", duration: 2.5, anomaly: false },
-  { time: "10:30", duration: 3.2, anomaly: false },
-  { time: "13:00", duration: 5.8, anomaly: true },
-  { time: "15:45", duration: 2.9, anomaly: false },
-  { time: "18:15", duration: 3.1, anomaly: false },
-  { time: "20:30", duration: 4.2, anomaly: false },
-  { time: "22:00", duration: 2.8, anomaly: false },
-]
+export type DurationPoint = {
+  time: string
+  duration: number
+  anomaly?: boolean
+}
 
-export default function DurationChart() {
+interface DurationChartProps {
+  readonly data?: DurationPoint[]
+}
+
+export default function DurationChart({ data = [] }: DurationChartProps) {
   return (
     <ResponsiveContainer width="100%" height={300}>
       <BarChart data={data}>
@@ -29,7 +29,10 @@ export default function DurationChart() {
         />
         <Bar dataKey="duration" radius={[8, 8, 0, 0]}>
           {data.map((entry, index) => (
-            <Cell key={`cell-${index}`} fill={entry.anomaly ? "var(--color-destructive)" : "var(--color-chart-2)"} />
+            <Cell
+              key={`cell-${index}`}
+              fill={entry.anomaly ? "var(--color-destructive)" : "var(--color-chart-2)"}
+            />
           ))}
         </Bar>
       </BarChart>

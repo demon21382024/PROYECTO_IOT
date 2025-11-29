@@ -5,6 +5,8 @@ import { useState } from "react"
 import { Menu, X, ChevronRight, Star, Wifi, Activity, TrendingUp, Users } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
+import { ContactSalesDialog } from "@/components/contact-sales-dialog"
+import { InfiniteMovingCards } from "@/components/ui/infinite-moving-cards"
 
 export default function LandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -15,8 +17,8 @@ export default function LandingPage() {
       <nav className="fixed w-full top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center">
-              <Wifi className="w-4 h-4 text-primary-foreground" />
+            <div className="w-10 h-10 flex items-center justify-center">
+              <img src="/logo.svg" alt="LitterFlow Logo" className="w-full h-full" />
             </div>
             <span className="font-bold text-lg text-foreground">LitterFlow</span>
           </div>
@@ -185,6 +187,7 @@ export default function LandingPage() {
       </section>
 
       {/* Social Proof */}
+
       <section id="testimonials" className="py-20 px-4 sm:px-6 lg:px-8 bg-muted/50">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16 space-y-4">
@@ -192,37 +195,55 @@ export default function LandingPage() {
             <p className="text-lg text-muted-foreground">Historias reales de dueños que cuidan mejor a sus gatos</p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
-            {[
-              {
-                name: "María García",
-                role: "Dueña de Michi",
-                text: "LitterFlow me alertó sobre un cambio en el comportamiento de mi gato. El veterinario confirmó que algo estaba mal. ¡Posiblemente le salvó la vida!",
-              },
-              {
-                name: "Carlos López",
-                role: "Dueño de dos gatos",
-                text: "La interface es hermosa y fácil de usar. Ver las tendencias de actividad me da tranquilidad todos los días.",
-              },
-              {
-                name: "Ana Martínez",
-                role: "Criadora responsable",
-                text: "El monitoreo de múltiples gatos es imprescindible. LitterFlow hace exactamente lo que necesitaba.",
-              },
-            ].map((testimonial, i) => (
-              <Card key={i} className="p-6 border border-border">
-                <div className="flex gap-1 mb-4">
-                  {[...Array(5)].map((_, j) => (
-                    <Star key={j} className="w-4 h-4 fill-amber-400 text-amber-400" />
-                  ))}
-                </div>
-                <p className="text-foreground mb-4 italic">"{testimonial.text}"</p>
-                <div className="border-t border-border pt-4">
-                  <p className="font-semibold text-foreground text-sm">{testimonial.name}</p>
-                  <p className="text-muted-foreground text-xs">{testimonial.role}</p>
-                </div>
-              </Card>
-            ))}
+          <div className="h-[20rem] rounded-md flex flex-col antialiased bg-background dark:bg-grid-white/[0.05] items-center justify-center relative overflow-hidden">
+            <InfiniteMovingCards
+              items={[
+                {
+                  quote: "LitterFlow me alertó sobre un cambio en el comportamiento de mi gato. El veterinario confirmó que algo estaba mal. ¡Posiblemente le salvó la vida!",
+                  name: "María González",
+                  title: "Dueña de Michi",
+                  rating: 5,
+                },
+                {
+                  quote: "La interface es hermosa y fácil de usar. Ver las tendencias de actividad me da tranquilidad todos los días.",
+                  name: "Carlos López",
+                  title: "Dueño de dos gatos",
+                  rating: 5,
+                },
+                {
+                  quote: "El monitoreo de múltiples gatos es imprescindible. LitterFlow hace exactamente lo que necesitaba.",
+                  name: "Ana Martínez",
+                  title: "Criadora responsable",
+                  rating: 5,
+                },
+                {
+                  quote: "Increíble tecnología. Nunca pensé que podría saber tanto sobre la salud de mi gato solo con su arenero.",
+                  name: "Roberto Sánchez",
+                  title: "Entusiasta Tech",
+                  rating: 5,
+                },
+                {
+                  quote: "El soporte al cliente es excelente y la aplicación funciona de maravilla. Muy recomendado.",
+                  name: "Laura Torres",
+                  title: "Veterinaria",
+                  rating: 5,
+                },
+                {
+                  quote: "Me encanta recibir las notificaciones diarias. Me siento mucho más conectado con mi gato cuando estoy en el trabajo.",
+                  name: "Diego Ruiz",
+                  title: "Dueño primerizo",
+                  rating: 5,
+                },
+                {
+                  quote: "La mejor inversión para la salud de mis gatos. La detección temprana de problemas urinarios no tiene precio.",
+                  name: "Patricia Vega",
+                  title: "Rescatista de gatos",
+                  rating: 5,
+                },
+              ]}
+              direction="right"
+              speed="slow"
+            />
           </div>
         </div>
       </section>
@@ -286,9 +307,7 @@ export default function LandingPage() {
             <Link href="/register">
               <Button size="lg">Comenzar gratuitamente</Button>
             </Link>
-            <Button size="lg" variant="outline">
-              Contactar ventas
-            </Button>
+            <ContactSalesDialog />
           </div>
         </div>
       </section>
@@ -299,8 +318,8 @@ export default function LandingPage() {
           <div className="grid md:grid-cols-4 gap-8 mb-8">
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center">
-                  <Wifi className="w-4 h-4 text-primary-foreground" />
+                <div className="w-10 h-10 flex items-center justify-center">
+                  <img src="/logo.svg" alt="LitterFlow Logo" className="w-full h-full" />
                 </div>
                 <span className="font-bold">LitterFlow</span>
               </div>

@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="76 47 360 360">
+  <defs>
+    <linearGradient id="cat-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f97316;stop-opacity:1" /> <!-- Orange-500 -->
+      <stop offset="100%" style="stop-color:#c2410c;stop-opacity:1" /> <!-- Orange-700 -->
+    </linearGradient>
+    <linearGradient id="collar-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" /> <!-- Blue-500 -->
+      <stop offset="100%" style="stop-color:#1d4ed8;stop-opacity:1" /> <!-- Blue-700 -->
+    </linearGradient>
+    <filter id="soft-shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#000" flood-opacity="0.2"/>
+    </filter>
+  </defs>
+
+  <!-- Main Cat Head Silhouette - Shorter Neck -->
+  <path d="M256 80 
+           C190 80 140 120 140 190 
+           C140 240 160 280 200 300
+           L200 350 
+           C200 370 312 370 312 350
+           L312 300
+           C352 280 372 240 372 190
+           C372 120 322 80 256 80 Z" 
+           fill="url(#cat-grad)" filter="url(#soft-shadow)" />
+
+  <!-- Ears -->
+  <path d="M160 190 L140 90 L210 140 Z" fill="url(#cat-grad)" />
+  <path d="M352 190 L372 90 L302 140 Z" fill="url(#cat-grad)" />
+
+  <!-- Smart Collar - Raised position -->
+  <path d="M190 310 Q256 340 322 310 L322 340 Q256 370 190 340 Z" fill="url(#collar-grad)" />
+
+  <!-- Smart Tag / Pendant - Raised position -->
+  <g transform="translate(256, 340)">
+    <circle cx="0" cy="20" r="20" fill="#1e293b" stroke="#3b82f6" stroke-width="3" />
+    <!-- Tech/Wifi Symbol on Tag -->
+    <path d="M-8 22 Q0 30 8 22" stroke="#3b82f6" stroke-width="2.5" fill="none" stroke-linecap="round" />
+    <path d="M-5 18 Q0 22 5 18" stroke="#3b82f6" stroke-width="2.5" fill="none" stroke-linecap="round" />
+    <circle cx="0" cy="14" r="1.5" fill="#3b82f6" />
+  </g>
+
+  <!-- Facial Features -->
+  <!-- Eyes -->
+  <path d="M205 190 Q225 170 245 190" stroke="white" stroke-width="6" stroke-linecap="round" fill="none" opacity="0.9" />
+  <path d="M267 190 Q287 170 307 190" stroke="white" stroke-width="6" stroke-linecap="round" fill="none" opacity="0.9" />
+  
+  <!-- Nose -->
+  <path d="M250 220 L262 220 L256 230 Z" fill="white" opacity="0.8" />
+
+</svg>

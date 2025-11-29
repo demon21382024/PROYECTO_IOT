@@ -4,40 +4,44 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* <CHANGE> Updated color palette for PurrTech premium IoT aesthetic */
+  /* <CHANGE> Updated color palette for LitterFlow - Commercial Orange & Tech Blue */
   --background: oklch(0.98 0 0);
   --foreground: oklch(0.15 0 0);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.15 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.15 0 0);
-  --primary: oklch(0.5 0.15 160);
+  --primary: oklch(0.65 0.22 45);
+  /* Vibrant Orange */
   --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.96 0.04 200);
+  --secondary: oklch(0.96 0.02 260);
+  /* Very light blue */
   --secondary-foreground: oklch(0.15 0 0);
-  --muted: oklch(0.94 0 0);
+  --muted: oklch(0.96 0 0);
   --muted-foreground: oklch(0.5 0 0);
-  --accent: oklch(0.55 0.12 165);
+  --accent: oklch(0.45 0.18 260);
+  /* Deep Tech Blue */
   --accent-foreground: oklch(1 0 0);
   --destructive: oklch(0.55 0.2 25);
   --destructive-foreground: oklch(1 0 0);
-  --border: oklch(0.92 0.01 200);
-  --input: oklch(0.96 0.01 200);
-  --ring: oklch(0.55 0.15 160);
-  --chart-1: oklch(0.55 0.15 160);
-  --chart-2: oklch(0.6 0.12 200);
-  --chart-3: oklch(0.7 0.1 120);
-  --chart-4: oklch(0.65 0.11 180);
+  --border: oklch(0.92 0 0);
+  --input: oklch(0.92 0 0);
+  --ring: oklch(0.65 0.22 45);
+  /* Match Primary */
+  --chart-1: oklch(0.65 0.22 45);
+  --chart-2: oklch(0.45 0.18 260);
+  --chart-3: oklch(0.7 0.15 80);
+  --chart-4: oklch(0.6 0.15 300);
   --chart-5: oklch(0.5 0.14 170);
   --radius: 0.75rem;
   --sidebar: oklch(0.98 0 0);
   --sidebar-foreground: oklch(0.15 0 0);
-  --sidebar-primary: oklch(0.5 0.15 160);
+  --sidebar-primary: oklch(0.65 0.22 45);
   --sidebar-primary-foreground: oklch(1 0 0);
-  --sidebar-accent: oklch(0.96 0.04 200);
+  --sidebar-accent: oklch(0.96 0.02 260);
   --sidebar-accent-foreground: oklch(0.15 0 0);
-  --sidebar-border: oklch(0.92 0.01 200);
-  --sidebar-ring: oklch(0.55 0.15 160);
+  --sidebar-border: oklch(0.92 0 0);
+  --sidebar-ring: oklch(0.65 0.22 45);
 }
 
 .dark {
@@ -120,7 +124,20 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  .animate-scroll {
+    animation: scroll var(--animation-duration, 40s) var(--animation-direction, forwards) linear infinite;
+  }
+}
+
+@keyframes scroll {
+  to {
+    transform: translate(calc(-50% - 0.5rem));
   }
 }
