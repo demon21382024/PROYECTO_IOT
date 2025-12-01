@@ -7,12 +7,14 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { ContactSalesDialog } from "@/components/contact-sales-dialog"
 import { InfiniteMovingCards } from "@/components/ui/infinite-moving-cards"
+import { BlackFridayDialog } from "@/components/black-friday-dialog"
 
 export default function LandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   return (
     <div className="min-h-screen bg-background">
+      <BlackFridayDialog />
       {/* Navigation */}
       <nav className="fixed w-full top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -258,24 +260,38 @@ export default function LandingPage() {
 
           <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             {[
-              { name: "Gratuito", price: "$0", color: "secondary" },
-              { name: "VIP", price: "$9.99", color: "primary", highlight: true },
-              { name: "BLACK", price: "$19.99", color: "accent" },
+              { name: "Essential", price: "$0", color: "secondary" },
+              { name: "Care", price: "$9.99", color: "primary", highlight: true },
+              { name: "Guardian", price: "$9.99", originalPrice: "$19.99", color: "accent", badge: "OFERTA IOT" },
             ].map((plan, i) => (
               <Card
                 key={i}
                 className={`p-8 border-2 ${plan.highlight ? "border-primary ring-2 ring-primary/20" : "border-border"} relative`}
               >
                 {plan.highlight && (
-                  <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2">
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
                     <span className="bg-primary text-primary-foreground px-4 py-1 rounded-full text-xs font-semibold">
                       MÁS POPULAR
                     </span>
                   </div>
                 )}
+                {plan.badge && (
+                  <div className="absolute top-0 right-0 w-24 h-24 overflow-hidden rounded-tr-xl">
+                    <div className="absolute top-5 -right-10 rotate-45 w-32 bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-center py-1 shadow-lg">
+                      <span className="text-[10px] font-bold uppercase tracking-wider drop-shadow-md">
+                        {plan.badge}
+                      </span>
+                    </div>
+                  </div>
+                )}
                 <div className="mb-6">
                   <h3 className="text-2xl font-bold text-foreground mb-2">{plan.name}</h3>
-                  <p className="text-3xl font-bold text-foreground">{plan.price}</p>
+                  <div className="flex items-baseline gap-2">
+                    <p className="text-3xl font-bold text-foreground">{plan.price}</p>
+                    {plan.originalPrice && (
+                      <p className="text-lg text-muted-foreground line-through">{plan.originalPrice}</p>
+                    )}
+                  </div>
                   <p className="text-sm text-muted-foreground mt-2">/mes</p>
                 </div>
                 <Link href="/register" className="block mb-6">

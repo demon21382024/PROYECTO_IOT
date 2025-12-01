@@ -4,11 +4,14 @@ import type React from "react"
 
 import Link from "next/link"
 import { useState } from "react"
+import { createBrowserSupabaseClient } from "@/lib/db"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { ArrowLeft, Check } from "lucide-react"
 
 export default function RegisterPage() {
+  const router = useRouter()
   const [step, setStep] = useState(1)
   const [formData, setFormData] = useState({
     name: "",
@@ -18,8 +21,11 @@ export default function RegisterPage() {
     catName: "",
   })
   const [error, setError] = useState("")
+  const [loading, setLoading] = useState(false)
 
-  const handleNext = () => {
+  const supabase = createBrowserSupabaseClient()
+
+  const handleNext = async () => {
     if (step === 1) {
       if (formData.name && formData.email) {
         setStep(2)
@@ -36,10 +42,33 @@ export default function RegisterPage() {
       }
     } else if (step === 3) {
       if (formData.catName) {
-        localStorage.setItem("isAuthenticated", "true")
-        localStorage.setItem("userEmail", formData.email)
-        localStorage.setItem("catName", formData.catName)
-        window.location.href = "/dashboard"
+        setLoading(true)
+        try {
+          // 1. Crear usuario en Supabase Auth
+          const { data: authData, error: authError } = await supabase.auth.signUp({
+            email: formData.email,
+            password: formData.password,
+            options: {
+              data: {
+                full_name: formData.name,
+                cat_name: formData.catName, // Guardamos el nombre del gato en metadata por ahora
+              },
+            },
+          })
+
+          if (authError) throw authError
+
+          // 2. (Opcional) Aquí podrías guardar datos adicionales en una tabla 'profiles' o 'cats'
+          // usando supabase.from('cats').insert(...)
+
+          // Éxito
+          router.push("/dashboard")
+        } catch (err: any) {
+          console.error("Error de registro:", err)
+          setError(err.message || "Ocurrió un error al registrarse")
+        } finally {
+          setLoading(false)
+        }
       } else {
         setError("Por favor ingresa el nombre de tu gato")
       }
@@ -168,8 +197,8 @@ export default function RegisterPage() {
             </div>
           )}
 
-          <Button onClick={handleNext} className="w-full mt-6">
-            {step === 3 ? "Crear Cuenta" : "Continuar"}
+          <Button onClick={handleNext} className="w-full mt-6" disabled={loading}>
+            {loading ? "Creando cuenta..." : step === 3 ? "Crear Cuenta" : "Continuar"}
           </Button>
 
           <p className="text-center text-sm text-muted-foreground mt-6">

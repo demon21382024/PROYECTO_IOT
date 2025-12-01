@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
+import { createBrowserSupabaseClient } from "@/lib/db"
 import { LogOut, Settings, Bell, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ProfileDialog } from "@/components/dashboard/profile-dialog"
@@ -14,22 +15,47 @@ export default function DashboardPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [userEmail, setUserEmail] = useState("")
   const [catName, setCatName] = useState("")
+  const [loading, setLoading] = useState(true)
+
+  const supabase = createBrowserSupabaseClient()
 
   useEffect(() => {
-    const auth = localStorage.getItem("isAuthenticated")
-    if (!auth) {
-      router.push("/login")
-    } else {
-      setIsAuthenticated(true)
-      setUserEmail(localStorage.getItem("userEmail") || "")
-      setCatName(localStorage.getItem("catName") || "Gato")
+    const checkUser = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        if (!session) {
+          router.push("/login")
+        } else {
+          setIsAuthenticated(true)
+          setUserEmail(session.user.email || "")
+          // Intentamos obtener el nombre del gato de los metadatos
+          setCatName(session.user.user_metadata?.cat_name || "Gato")
+        }
+      } catch (error) {
+        console.error("Error checking session:", error)
+        router.push("/login")
+      } finally {
+        setLoading(false)
+      }
     }
-  }, [router])
 
-  const handleLogout = () => {
-    localStorage.clear()
+    checkUser()
+  }, [router, supabase])
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
     router.push("/")
   }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <p className="text-muted-foreground">Cargando...</p>
+      </div>
+    )
+  }
+
+  if (!isAuthenticated) return null
 
   if (!isAuthenticated) return null
 

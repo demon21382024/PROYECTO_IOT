@@ -87,7 +87,6 @@ void loop() {
   strftime(timestamp, sizeof(timestamp), "%Y-%m-%dT%H:%M:%SZ", gmtime(&now));
 
   // 3. Construir JSON
-  // IMPORTANTE: Aquí usamos las variables que tu backend espera:
   // 'duracionSegundos', 'inicio', 'visitaId', 'evento'
   char json_payload[256];
   

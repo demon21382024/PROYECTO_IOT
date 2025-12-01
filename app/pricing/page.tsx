@@ -9,7 +9,7 @@ import { ContactSalesDialog } from "@/components/contact-sales-dialog"
 export default function PricingPage() {
   const plans = [
     {
-      name: "Gratuito",
+      name: "Essential",
       price: "$0",
       description: "Perfecto para conocer LitterFlow",
       features: [
@@ -30,7 +30,7 @@ export default function PricingPage() {
       highlight: false,
     },
     {
-      name: "VIP",
+      name: "Care",
       price: "$9.99",
       period: "/mes",
       description: "Para dueños que cuidan cada detalle",
@@ -50,12 +50,14 @@ export default function PricingPage() {
         "Más de 2 gatos",
         "Soporte prioritario 24/7",
       ],
-      cta: "Actualizar a VIP",
+      cta: "Actualizar a Care",
       highlight: true,
     },
     {
-      name: "BLACK",
-      price: "$19.99",
+      name: "Guardian",
+      price: "$9.99",
+      originalPrice: "$19.99",
+      badge: "OFERTA IOT",
       period: "/mes",
       description: "Máximo control para expertos en mascotas",
       features: [
@@ -69,7 +71,7 @@ export default function PricingPage() {
         "Acceso API",
       ],
       notIncluded: [],
-      cta: "Obtener BLACK",
+      cta: "Obtener Guardian",
       highlight: false,
     },
   ]
@@ -112,10 +114,19 @@ export default function PricingPage() {
                 }`}
             >
               {plan.highlight && (
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2">
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
                   <span className="bg-primary text-primary-foreground px-4 py-1 rounded-full text-xs font-semibold whitespace-nowrap">
                     MÁS POPULAR
                   </span>
+                </div>
+              )}
+              {plan.badge && (
+                <div className="absolute top-0 right-0 w-24 h-24 overflow-hidden rounded-tr-xl">
+                  <div className="absolute top-5 -right-10 rotate-45 w-32 bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-center py-1 shadow-lg">
+                    <span className="text-[10px] font-bold uppercase tracking-wider drop-shadow-md">
+                      {plan.badge}
+                    </span>
+                  </div>
                 </div>
               )}
 
@@ -124,15 +135,18 @@ export default function PricingPage() {
                 <p className="text-sm text-muted-foreground mb-6">{plan.description}</p>
 
                 <div className="mb-8">
-                  <div className="flex items-baseline">
+                  <div className="flex items-baseline gap-2">
                     <span className="text-5xl font-bold text-foreground">{plan.price}</span>
+                    {plan.originalPrice && (
+                      <span className="text-2xl text-muted-foreground line-through">{plan.originalPrice}</span>
+                    )}
                     {plan.period && <span className="text-muted-foreground ml-2">{plan.period}</span>}
                   </div>
-                  {plan.name === "Gratuito" && (
+                  {plan.name === "Essential" && (
                     <p className="text-sm text-muted-foreground mt-2">Para siempre gratis</p>
                   )}
-                  {plan.name === "VIP" && <p className="text-sm text-muted-foreground mt-2">Facturación mensual</p>}
-                  {plan.name === "BLACK" && <p className="text-sm text-muted-foreground mt-2">Máximo valor</p>}
+                  {plan.name === "Care" && <p className="text-sm text-muted-foreground mt-2">Facturación mensual</p>}
+                  {plan.name === "Guardian" && <p className="text-sm text-muted-foreground mt-2">Máximo valor</p>}
                 </div>
 
                 <Button className="w-full mb-8" variant={plan.highlight ? "default" : "outline"}>
@@ -180,7 +194,7 @@ export default function PricingPage() {
               },
               {
                 q: "¿Qué pasa con mis datos si cancelo?",
-                a: "En el plan Gratuito tu historial se mantiene por 30 días. En VIP se guarda por 90 días. Con BLACK, tus datos se guardan de por vida.",
+                a: "En el plan Essential tu historial se mantiene por 30 días. En Care se guarda por 90 días. Con Guardian, tus datos se guardan de por vida.",
               },
               {
                 q: "¿Hay descuentos por pago anual?",
@@ -188,7 +202,7 @@ export default function PricingPage() {
               },
               {
                 q: "¿Incluye acceso a la API?",
-                a: "El acceso a API está disponible solo en el plan BLACK. Para VIP, consultanos sobre planes personalizados.",
+                a: "El acceso a API está disponible solo en el plan Guardian. Para Care, consultanos sobre planes personalizados.",
               },
             ].map((faq, i) => (
               <Card key={i} className="p-6 border border-border">
