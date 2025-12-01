@@ -16,7 +16,7 @@ const topics = [
 const metrics = {
   resumen: null,
   estado: null,
-  visitas: [], // último historial de visitas
+  visitas: [],
 };
 
 client.on('connect', () => {
