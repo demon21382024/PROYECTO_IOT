@@ -35,29 +35,57 @@ client.on('message', (topic, message) => {
   if (topic === TOPIC_LOG) {
     const text = message.toString();
     console.log(`[ESP32] Señal recibida: ${text}`);
+    // Como no nos dice si entra o sale, tenemos que alternar el estado nosotros.
 
-    const now = new Date();
-    const timestampStr = now.toISOString();
+    const timestampStr = text; // El mensaje ES el timestamp
+    const estadoActual = metrics.estado.estado;
 
-    // 1. Actualizar Estado
-    metrics.estado = {
-      estado: 'Ocupado', // Asumimos ocupado al detectar
-      actualizadoEn: timestampStr,
-    };
+    if (estadoActual === 'Disponible') {
+      // --- ASUMIMOS QUE ENTRA ---
+      console.log("➡️ Cambio de estado: Gato ENTRA");
 
-    // 2. Actualizar Resumen
-    metrics.resumen.visitasHoy += 1;
-    metrics.resumen.ultimoMovimiento = timestampStr;
+      metrics.estado = {
+        estado: 'Ocupado',
+        actualizadoEn: timestampStr,
+      };
+      metrics.resumen.visitasHoy += 1;
+      metrics.resumen.ultimoMovimiento = timestampStr;
 
-    // 3. Registrar Visita (Sin simulación de cierre)
-    const nuevaVisita = {
-      evento: 'entrada',
-      inicio: timestampStr,
-      duracionSegundos: 0, // Desconocido
-      nota: 'Detectado por ESP32 (En curso)'
-    };
+      const nuevaVisita = {
+        evento: 'entrada',
+        inicio: timestampStr,
+        duracionSegundos: 0,
+        nota: 'Gato dentro del arenero'
+      };
+      metrics.visitas.push(nuevaVisita);
 
-    metrics.visitas.push(nuevaVisita);
+    } else {
+      // --- ASUMIMOS QUE SALE ---
+      console.log("⬅️ Cambio de estado: Gato SALE");
+
+      metrics.estado = {
+        estado: 'Disponible',
+        actualizadoEn: timestampStr,
+      };
+
+      // Buscar la última visita abierta
+      const ultimaVisita = metrics.visitas[metrics.visitas.length - 1];
+
+      if (ultimaVisita && ultimaVisita.evento === 'entrada') {
+        const inicio = new Date(ultimaVisita.inicio);
+        const fin = new Date(timestampStr); // Usamos la fecha que mandó el ESP32
+
+        // Calcular duración en segundos
+        let duracion = Math.round((fin - inicio) / 1000);
+        if (duracion < 0) duracion = 0; // Por si acaso
+
+        ultimaVisita.evento = 'salida';
+        ultimaVisita.duracionSegundos = duracion;
+        ultimaVisita.nota = 'Visita completada';
+        metrics.resumen.ultimaDuracion = duracion;
+      }
+    }
+
     // Mantener solo las últimas 20
     if (metrics.visitas.length > 20) metrics.visitas = metrics.visitas.slice(-20);
   }
@@ -119,5 +147,5 @@ const server = http.createServer(async (req, res) => {
 
 server.listen(PORT, () => {
   console.log(`🌐 Backend listo en http://localhost:${PORT}/metrics`);
-  console.log(`   - Modo: REAL (Sin simulación)`);
+  console.log(`   - ESPERANDO RESPUESTA:....`);
 });

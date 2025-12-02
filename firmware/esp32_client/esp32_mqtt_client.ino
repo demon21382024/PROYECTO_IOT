@@ -8,6 +8,7 @@
 //const char* WIFI_PASS = "Eybn4PMt";
 const char* WIFI_SSID = "Redmi Note 14";
 const char* WIFI_PASS = "joel1234";
+
 // ===== CONFIG MQTT =====
 const char* MQTT_BROKER = "test.mosquitto.org";
 const uint16_t MQTT_PORT = 1883;
@@ -121,12 +122,19 @@ void loop() {
 
     float cm = readDistanceCm();
 
-    // Solo queremos publicar cuando pasamos de "no hay nada < umbral" a "hay algo < umbral"
+    // Estado actual respecto al umbral
     bool isBelowThreshold = (!isnan(cm) && cm < DIST_THRESHOLD_CM);
 
-    if (isBelowThreshold && !wasBelowThreshold) {
-      // Aquí hay flanco: antes no estaba bajo el umbral y ahora sí
-      Serial.println("⚡ Evento: objeto detectado por debajo del umbral, registrando fecha/hora...");
+    // Queremos publicar cuando se cruza el umbral en cualquier dirección:
+    //  - de "arriba" a "debajo" del umbral
+    //  - de "debajo" a "arriba" del umbral
+    if (isBelowThreshold != wasBelowThreshold) {
+      // Aquí hay cambio de estado (flanco de subida o bajada)
+      if (isBelowThreshold) {
+        Serial.println("⚡ Evento: objeto ENTRA a la zona bajo el umbral, registrando fecha/hora...");
+      } else {
+        Serial.println("⚡ Evento: objeto SALE de la zona bajo el umbral, registrando fecha/hora...");
+      }
 
       time_t raw = time(nullptr);
       struct tm timeinfo;
@@ -136,7 +144,7 @@ void loop() {
       // Ejemplo: 2025-11-30T14:23:45-0500
       strftime(timeStr, sizeof(timeStr), "%Y-%m-%dT%H:%M:%S%z", &timeinfo);
 
-      // Payload: solo la fecha/hora
+      // Payload: solo la fecha/hora (igual que el original)
       mqtt.publish(TOPIC_LOG, timeStr);
       Serial.print("LOG -> ");
       Serial.print(TOPIC_LOG);

@@ -13,12 +13,14 @@ import {
   Timer,
   StickyNote,
 } from "lucide-react"
+import { toast } from "sonner"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import ActivityChart from "./activity-chart"
 import DurationChart, { type DurationPoint } from "./duration-chart"
 import StatusDistributionChart from "./status-distribution-chart"
+import { HealthDialog } from "./health-dialog"
 
 interface DashboardContentProps {
   readonly catName: string
@@ -224,14 +226,14 @@ export default function DashboardContent({ catName, userEmail }: DashboardConten
   const getMoodIconConfig = (estado: string) => {
     const normalized = estado.toLowerCase()
 
-    if (normalized.includes("en curso")) {
+    if (normalized.includes("en curso") || normalized.includes("ocupado")) {
       return {
         className: "text-amber-500",
         label: "Gato actualmente dentro del arenero",
       }
     }
 
-    if (normalized.includes("complet")) {
+    if (normalized.includes("complet") || normalized.includes("disponible")) {
       return {
         className: "text-emerald-500",
         label: "Visita completada con normalidad",
@@ -246,10 +248,10 @@ export default function DashboardContent({ catName, userEmail }: DashboardConten
 
   const getStatusClasses = (estado: string) => {
     const normalized = estado.toLowerCase()
-    if (normalized.includes("en curso")) {
+    if (normalized.includes("en curso") || normalized.includes("ocupado")) {
       return "text-amber-500 font-medium"
     }
-    if (normalized.includes("complet")) {
+    if (normalized.includes("complet") || normalized.includes("disponible")) {
       return "text-emerald-500 font-medium"
     }
     return "text-muted-foreground"
@@ -559,11 +561,28 @@ export default function DashboardContent({ catName, userEmail }: DashboardConten
       <Card className="p-6 border border-border">
         <h3 className="text-lg font-semibold text-foreground mb-4">Alertas de Salud</h3>
         <div className="space-y-3">
-          <div className="p-3 rounded-lg bg-primary/10 border border-primary/20 text-sm">
-            <p className="font-medium text-foreground">✓ Estado Normal</p>
-            <p className="text-muted-foreground text-xs mt-1">Todos los parámetros dentro de los rangos normales</p>
-          </div>
-          <div className="p-3 rounded-lg bg-muted border border-border text-sm">
+          <HealthDialog dailyVisits={todayStats.visits}>
+            <div className="p-3 rounded-lg bg-primary/10 border border-primary/20 text-sm cursor-pointer hover:bg-primary/20 transition-colors group">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium text-foreground group-hover:text-primary transition-colors">
+                    {todayStats.visits <= 1 || todayStats.visits >= 6 ? "⚠️ Atención Requerida" : "✓ Estado Normal"}
+                  </p>
+                  <p className="text-muted-foreground text-xs mt-1">
+                    {todayStats.visits} visitas hoy. Haz clic para ver el reporte detallado.
+                  </p>
+                </div>
+                <Activity className="w-4 h-4 text-primary opacity-50 group-hover:opacity-100 transition-opacity" />
+              </div>
+            </div>
+          </HealthDialog>
+
+          <div
+            className="p-3 rounded-lg bg-muted border border-border text-sm cursor-pointer hover:bg-muted/80 transition-colors"
+            onClick={() => toast.info("Funcionalidad en construcción", {
+              description: "Estamos trabajando para traer la IA pronto."
+            })}
+          >
             <p className="font-medium text-foreground">📊 Análisis de IA</p>
             <p className="text-muted-foreground text-xs mt-1">El próximo análisis se realizará en 6 horas</p>
           </div>
