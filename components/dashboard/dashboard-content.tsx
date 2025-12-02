@@ -81,7 +81,7 @@ export default function DashboardContent({ catName, userEmail }: DashboardConten
 
     const fetchMetrics = async () => {
       try {
-        const res = await fetch("http://localhost:4000/metrics")
+        const res = await fetch("http://localhost:3001/metrics")
         if (!res.ok) return
 
         const data = await res.json()
@@ -325,7 +325,7 @@ export default function DashboardContent({ catName, userEmail }: DashboardConten
             variant="outline"
             size="sm"
             className="flex items-center gap-2 bg-transparent"
-            onClick={() => window.open('http://localhost:4000/report', '_blank')}
+            onClick={() => window.open('http://localhost:3001/report', '_blank')}
           >
             <Download className="w-4 h-4" />
             Reportar

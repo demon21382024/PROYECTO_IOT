@@ -1,71 +1,83 @@
 const mqtt = require('mqtt');
-const http = require('node:http');
+const http = require('http');
 const ExcelJS = require('exceljs');
 
-// Misma configuración que el simulador
-const client = mqtt.connect('mqtt://broker.hivemq.com');
+const PORT = 3001;
 
-const topics = [
-  'arenero/+/sensor/#',
-  'arenero/+/visitas/#',
-  'arenero/+/estado',
-  'arenero/comando/#',
-];
+// Configuración MQTT
+const client = mqtt.connect('mqtt://test.mosquitto.org');
+const TOPIC_LOG = 'esp32/log';
 
-// Estado en memoria que el dashboard va a leer
+// Estado en memoria
 const metrics = {
-  resumen: null,
-  estado: null,
+  resumen: {
+    visitasHoy: 0,
+    ultimoMovimiento: null,
+    ultimaDuracion: 0,
+  },
+  estado: {
+    estado: 'Disponible',
+    actualizadoEn: new Date().toISOString(),
+  },
   visitas: [],
 };
 
 client.on('connect', () => {
-  console.log('📡 Backend de Prueba escuchando MQTT...');
-  topics.forEach((topic) => client.subscribe(topic));
+  console.log('📡 Backend conectado a MQTT (test.mosquitto.org)...');
+  client.subscribe(TOPIC_LOG, (err) => {
+    if (!err) {
+      console.log(`👂 Escuchando en: ${TOPIC_LOG}`);
+    }
+  });
 });
 
 client.on('message', (topic, message) => {
-  const text = message.toString();
+  if (topic === TOPIC_LOG) {
+    const text = message.toString();
+    console.log(`[ESP32] Señal recibida: ${text}`);
 
-  try {
-    const payload = JSON.parse(text);
+    const now = new Date();
+    const timestampStr = now.toISOString();
 
-    if (topic.includes('/visitas/resumen')) {
-      metrics.resumen = payload;
-    } else if (topic.includes('/visitas/detalle')) {
-      metrics.visitas.push(payload);
-      // Nos quedamos solo con las últimas 20 visitas para la tabla
-      if (metrics.visitas.length > 20) {
-        metrics.visitas = metrics.visitas.slice(-20);
-      }
-    } else if (topic.includes('/estado')) {
-      metrics.estado = payload;
-    }
+    // 1. Actualizar Estado
+    metrics.estado = {
+      estado: 'Ocupado', // Asumimos ocupado al detectar
+      actualizadoEn: timestampStr,
+    };
 
-    console.log(`[RECIBIDO] ${topic} ->`, payload);
-  } catch (error) {
-    console.warn(`⚠️ No se pudo parsear el mensaje JSON en ${topic}`, error);
-    console.log(`[RECIBIDO] ${topic} -> ${text}`);
+    // 2. Actualizar Resumen
+    metrics.resumen.visitasHoy += 1;
+    metrics.resumen.ultimoMovimiento = timestampStr;
+
+    // 3. Registrar Visita (Sin simulación de cierre)
+    const nuevaVisita = {
+      evento: 'entrada',
+      inicio: timestampStr,
+      duracionSegundos: 0, // Desconocido
+      nota: 'Detectado por ESP32 (En curso)'
+    };
+
+    metrics.visitas.push(nuevaVisita);
+    // Mantener solo las últimas 20
+    if (metrics.visitas.length > 20) metrics.visitas = metrics.visitas.slice(-20);
   }
 });
 
-// Servidor HTTP muy simple para que el Dashboard lea las métricas
-const PORT = 4000;
-
 const server = http.createServer(async (req, res) => {
+  // CORS
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+
+  if (req.method === 'OPTIONS') {
+    res.statusCode = 204;
+    res.end();
+    return;
+  }
+
   if (req.method === 'GET' && req.url === '/metrics') {
     res.statusCode = 200;
     res.setHeader('Content-Type', 'application/json');
-    // CORS simple para desarrollo
-    res.setHeader('Access-Control-Allow-Origin', '*');
-
-    res.end(
-      JSON.stringify({
-        resumen: metrics.resumen,
-        estado: metrics.estado,
-        visitas: metrics.visitas,
-      }),
-    );
+    res.end(JSON.stringify(metrics));
   } else if (req.method === 'GET' && req.url === '/report') {
     res.statusCode = 200;
     res.setHeader(
@@ -73,7 +85,6 @@ const server = http.createServer(async (req, res) => {
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     );
     res.setHeader('Content-Disposition', 'attachment; filename="reporte_gato.xlsx"');
-    res.setHeader('Access-Control-Allow-Origin', '*');
 
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Visitas');
@@ -81,22 +92,20 @@ const server = http.createServer(async (req, res) => {
     worksheet.columns = [
       { header: 'Visita #', key: 'id', width: 10 },
       { header: 'Estado', key: 'estado', width: 15 },
-      { header: 'Inicio', key: 'inicio', width: 20 },
+      { header: 'Inicio', key: 'inicio', width: 25 },
       { header: 'Duración (s)', key: 'duracion', width: 15 },
-      { header: 'Nota', key: 'nota', width: 25 },
+      { header: 'Nota', key: 'nota', width: 30 },
     ];
 
-    // Estilo para los encabezados
     worksheet.getRow(1).font = { bold: true };
 
     metrics.visitas.forEach((v, index) => {
-      const nota = v.duracionSegundos === 0 ? 'Fuera del arenero' : 'Dentro de lo normal';
       worksheet.addRow({
-        id: index + 1, // ID secuencial: 1, 2, 3...
-        estado: v.evento || 'N/A',
-        inicio: v.inicio || 'N/A',
+        id: index + 1,
+        estado: v.evento === 'salida' ? 'Completada' : 'En curso',
+        inicio: v.inicio,
         duracion: v.duracionSegundos || 0,
-        nota: nota,
+        nota: v.nota,
       });
     });
 
@@ -109,5 +118,6 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`🌐 Backend HTTP de métricas escuchando en http://localhost:${PORT}/metrics`);
+  console.log(`🌐 Backend listo en http://localhost:${PORT}/metrics`);
+  console.log(`   - Modo: REAL (Sin simulación)`);
 });

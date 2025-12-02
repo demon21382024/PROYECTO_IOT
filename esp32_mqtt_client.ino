@@ -1,110 +1,150 @@
 #include <WiFi.h>
 #include <PubSubClient.h>
-#include <time.h>
+#include <time.h>              // Para fecha y hora
 
-// --- 1. CONFIGURACIÓN WIFI (PON TUS DATOS AQUÍ) ---
-const char* WIFI_SSID = "NOMBRE_DE_TU_WIFI";       // <--- CAMBIAR
-const char* WIFI_PASSWORD = "TU_CONTRASEÑA_WIFI";  // <--- CAMBIAR
 
-// --- 2. CONFIGURACIÓN MQTT (ATENCIÓN AQUÍ) ---
-// Pon la IP de tu PC que viste en ipconfig (ej: "192.168.1.50")
-const char* MQTT_BROKER = "192.168.X.X";
-const int MQTT_PORT = 1883;
+// ===== CONFIG WIFI =====
+//const char* WIFI_SSID = "HUAWEI-2.4G-uzvE";
+//const char* WIFI_PASS = "Eybn4PMt";
+const char* WIFI_SSID = "Redmi Note 14";
+const char* WIFI_PASS = "joel1234";
+// ===== CONFIG MQTT =====
+const char* MQTT_BROKER = "test.mosquitto.org";
+const uint16_t MQTT_PORT = 1883;
 
-// Este tópico coincide con lo que tu Backend escucha en la línea 36 de prueba_backend.js
-const char* MQTT_TOPIC = "arenero/Arenero-001/visitas/detalle"; 
+const char* TOPIC_LOG = "esp32/log";   // único topic usado
 
-// --- CONFIGURACIÓN HORA ---
-const char* NTP_SERVER = "pool.ntp.org";
-const long GMT_OFFSET_SEC = -3600 * 5; // Ajustado para Lima/Perú (-5 UTC)
-const int DAYLIGHT_OFFSET_SEC = 0;     // En Perú no solemos usar horario de verano
+// ===== CONFIG NTP (hora) =====
+// Perú: UTC-5, sin DST
+const long GMT_OFFSET_SEC      = -5 * 3600;
+const int  DAYLIGHT_OFFSET_SEC = 0;
+const char* NTP_SERVER_1       = "pool.ntp.org";
+const char* NTP_SERVER_2       = "time.nist.gov";
 
-WiFiClient wifiClient;
-PubSubClient mqttClient(wifiClient);
+// ===== ULTRASONIC PINS =====
+const int PIN_TRIG = 5;
+const int PIN_ECHO = 18;
 
-void setup_wifi() {
-  delay(10);
-  Serial.println();
-  Serial.print("Conectando a ");
-  Serial.println(WIFI_SSID);
-  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+// ===== OBJETOS WIFI/MQTT =====
+WiFiClient espClient;
+PubSubClient mqtt(espClient);
+
+unsigned long lastPublish = 0;
+const unsigned long PUBLISH_INTERVAL_MS = 1000;
+
+// Umbral para log
+const float DIST_THRESHOLD_CM = 30.0;
+// Estado de presencia respecto al umbral
+bool wasBelowThreshold = false;
+
+// =========================
+void wifiConnect() {
+  WiFi.begin(WIFI_SSID, WIFI_PASS);
+  Serial.print("Conectando a WiFi");
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
   }
-  Serial.println("\nWiFi conectado. IP: ");
-  Serial.println(WiFi.localIP());
+  Serial.println("\nWiFi conectado, IP: " + WiFi.localIP().toString());
 }
 
-void sync_time() {
-  configTime(GMT_OFFSET_SEC, DAYLIGHT_OFFSET_SEC, NTP_SERVER);
-  struct tm timeinfo;
-  if (!getLocalTime(&timeinfo)) {
-    Serial.println("Fallo al obtener la hora");
-    return;
-  }
-  Serial.println("Hora sincronizada.");
-}
-
-void reconnect_mqtt() {
-  while (!mqttClient.connected()) {
-    Serial.print("Conectando a MQTT en tu PC...");
-    // ID único para que Mosquitto no se confunda
-    if (mqttClient.connect("ESP32_Arenero_Fisico")) { 
-      Serial.println("¡Conectado!");
+void mqttConnect() {
+  mqtt.setServer(MQTT_BROKER, MQTT_PORT);
+  while (!mqtt.connected()) {
+    String clientId = "esp32-ultra-" + String((uint32_t)ESP.getEfuseMac(), HEX);
+    Serial.print("Conectando a MQTT...");
+    // Conexión simple, sin LWT ni credenciales
+    if (mqtt.connect(clientId.c_str())) {
+      Serial.println(" conectado.");
     } else {
-      Serial.print("falló, rc=");
-      Serial.print(mqttClient.state());
-      Serial.println(" reintentando en 5s...");
-      delay(5000);
+      Serial.print(" fallo, rc=");
+      Serial.println(mqtt.state());
+      delay(2000);
     }
   }
 }
 
+void setupTime() {
+  configTime(GMT_OFFSET_SEC, DAYLIGHT_OFFSET_SEC, NTP_SERVER_1, NTP_SERVER_2);
+  Serial.println("Sincronizando hora con NTP...");
+
+  struct tm timeinfo;
+  // Intentar obtener hora con timeout de 10 segundos
+  if (!getLocalTime(&timeinfo, 10000)) {
+    Serial.println("⚠ No se pudo obtener la hora (NTP)");
+  } else {
+    Serial.println("Hora sincronizada correctamente:");
+    Serial.printf("%04d-%02d-%02d %02d:%02d:%02d\n",
+                  timeinfo.tm_year + 1900,
+                  timeinfo.tm_mon + 1,
+                  timeinfo.tm_mday,
+                  timeinfo.tm_hour,
+                  timeinfo.tm_min,
+                  timeinfo.tm_sec);
+  }
+}
+
+float readDistanceCm() {
+  digitalWrite(PIN_TRIG, LOW);
+  delayMicroseconds(2);
+  digitalWrite(PIN_TRIG, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(PIN_TRIG, LOW);
+
+  unsigned long duration = pulseIn(PIN_ECHO, HIGH, 30000); // timeout 30ms
+  if (duration == 0) return NAN;
+
+  float distance = (duration * 0.0343f) / 2.0f; // cm
+  Serial.print("Distancia: ");
+  Serial.println(distance);
+  return distance;
+}
+
 void setup() {
   Serial.begin(115200);
-  setup_wifi();
-  sync_time();
-  mqttClient.setServer(MQTT_BROKER, MQTT_PORT);
+  pinMode(PIN_TRIG, OUTPUT);
+  pinMode(PIN_ECHO, INPUT);
+
+  wifiConnect();
+  setupTime();    // obtener fecha/hora real
+  mqttConnect();
 }
 
 void loop() {
-  if (!mqttClient.connected()) {
-    reconnect_mqtt();
+  if (WiFi.status() != WL_CONNECTED) wifiConnect();
+  if (!mqtt.connected()) mqttConnect();
+  mqtt.loop();
+
+  unsigned long now = millis();
+  if (now - lastPublish >= PUBLISH_INTERVAL_MS) {
+    lastPublish = now;
+
+    float cm = readDistanceCm();
+
+    // Solo queremos publicar cuando pasamos de "no hay nada < umbral" a "hay algo < umbral"
+    bool isBelowThreshold = (!isnan(cm) && cm < DIST_THRESHOLD_CM);
+
+    if (isBelowThreshold && !wasBelowThreshold) {
+      // Aquí hay flanco: antes no estaba bajo el umbral y ahora sí
+      Serial.println("⚡ Evento: objeto detectado por debajo del umbral, registrando fecha/hora...");
+
+      time_t raw = time(nullptr);
+      struct tm timeinfo;
+      localtime_r(&raw, &timeinfo);
+
+      char timeStr[40];
+      // Ejemplo: 2025-11-30T14:23:45-0500
+      strftime(timeStr, sizeof(timeStr), "%Y-%m-%dT%H:%M:%S%z", &timeinfo);
+
+      // Payload: solo la fecha/hora
+      mqtt.publish(TOPIC_LOG, timeStr);
+      Serial.print("LOG -> ");
+      Serial.print(TOPIC_LOG);
+      Serial.print(" : ");
+      Serial.println(timeStr);
+    }
+
+    // Actualizar memoria del estado respecto al umbral
+    wasBelowThreshold = isBelowThreshold;
   }
-  mqttClient.loop();
-
-  // --- SIMULACIÓN DE DATOS (O LECTURA DE SENSORES) ---
-  // Esto simula que el gato acaba de salir
-  
-  // 1. Datos simulados (Adáptalo a tus sensores reales)
-  int duracion_real = random(15, 300); // Duración en segundos
-  
-  // 2. Obtener Timestamp
-  time_t now;
-  time(&now);
-  char timestamp[30];
-  strftime(timestamp, sizeof(timestamp), "%Y-%m-%dT%H:%M:%SZ", gmtime(&now));
-
-  // 3. Construir JSON
-  // 'duracionSegundos', 'inicio', 'visitaId', 'evento'
-  char json_payload[256];
-  
-  // Creamos un ID único basado en el tiempo
-  char visitaId[20];
-  sprintf(visitaId, "VIS-%ld", now);
-
-  sprintf(json_payload, 
-    "{\"visitaId\": \"%s\", \"inicio\": \"%s\", \"duracionSegundos\": %d, \"evento\": \"salida_sensor\", \"nota\": \"Deteccion real ESP32\"}",
-    visitaId, timestamp, duracion_real
-  );
-
-  // 4. Publicar
-  Serial.print("Enviando datos a tu PC: ");
-  Serial.println(json_payload);
-  
-  mqttClient.publish(MQTT_TOPIC, json_payload);
-
-  // Esperar 10 segundos para la siguiente prueba
-  delay(10000); 
 }

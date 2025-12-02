@@ -92,7 +92,7 @@ export default function RegisterPage() {
 
         <Card className="p-8 border border-border shadow-lg">
           <div className="flex items-center justify-center w-16 h-16 mx-auto mb-6">
-            <img src="/logo.svg" alt="LitterFlow Logo" className="w-full h-full" />
+            <img src="/logo_cat.png" alt="LitterFlow Logo" className="w-full h-full" />
           </div>
 
           <h1 className="text-3xl font-bold text-center text-foreground mb-2">Crear cuenta</h1>

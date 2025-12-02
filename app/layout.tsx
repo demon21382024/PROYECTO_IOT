@@ -13,8 +13,8 @@ export const metadata: Metadata = {
     "Monitorea la salud de tu gato con IA avanzada. Detección de anomalías, historial detallado y alertas en tiempo real.",
   generator: "v0.app",
   icons: {
-    icon: "/icon.svg",
-    apple: "/icon.svg",
+    icon: "/logo_cat.png",
+    apple: "/logo_cat.png",
   },
 }
 
